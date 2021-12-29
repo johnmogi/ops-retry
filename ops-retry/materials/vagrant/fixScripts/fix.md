@@ -4,6 +4,9 @@ ssh between servers - restart:
 
 https://superuser.com/questions/671191/how-to-ssh-between-a-cluster-of-vagrant-guest-vms
 
+2.sudo ed -s /etc/hosts <<< $'g/www.ascii-art.de/d\nw'
+<!-- # curl http://www.ascii-art.de/ascii/ab/007.txt
+# sudo sed -i '/127.0.0.1 www.ascii-art.de/d' /etc/hosts -->
 
 0. bu old scripts:
 sudo ssh-keygen -t rsa -f id_rsa -y
@@ -45,4 +48,34 @@ sudo sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/g' /etc/ss
 # restart ssh service
 
 
-1. 
+6. 
+#example ./exercise6-fix.sh /vagrant/Vagrantfile /etc/crontab  /tmp #Copy Files: Vagrantfile,crontab to RemoteServerDirectory:tmp
+
+set -e
+
+# At least 2 arguments should be passed
+if [ $# -lt 2 ]
+then
+    echo "Please insert the correct number of arguments [min 2 arguments]"
+    exit
+else 
+	case `hostname` in  
+		server1) rmserver=server2 ;;
+		server2) rmserver=server1 ;; 
+	esac
+fi
+
+#Getting arguments 
+FILES=${@:1:$#-1} #File lists
+DIR=${@:$#} #last arguments - directory on remote server
+myFileSizeCheck="" #calculate files size in bytes
+
+for file in ${FILES}; do
+		let myFileSizeCheck+=$(stat -c %s $file);
+		#printf "%d\n" $myFileSizeCheck
+done
+
+scp $FILES `whoami`@$rmserver:$DIR
+printf "%d\n" $myFileSizeCheck;
+
+exit
